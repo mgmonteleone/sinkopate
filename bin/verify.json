@@ -1,0 +1,13 @@
+{
+  "block": 10000,
+  "push": "data",
+  "port": 5226,
+  "drop": false,
+  "change_streams": false,
+  "db": "mongodb+srv://dba:n33du2g0@mongopush.l50ex.mongodb.net/_mongopush?retryWrites=true&w=majority",
+  "snapshot": "./snapshot",
+  "source": "mongodb+srv://dba:n33du2g0@adltest.l50ex.mongodb.net/transactions?retryWrites=true&w=majority&readPreference=secondary&readPreferenceTags=nodeType:ANALYTICS",
+  "target": "mongodb+srv://dba:n33du2g0@destination-test.l50ex.mongodb.net/transactions?retryWrites=true&w=majority&readPreference=secondary",
+  "workers": 8,
+  "include": [{ "namespace": "transactions_small.transactions_small" }]
+  }

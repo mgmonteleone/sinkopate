@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Ken Chen's MongoPush</title>
+	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+	<meta http-equiv="Pragma" content="no-cache" />
+	<meta http-equiv="Expires" content="0" />
+
+  <script src="https://www.gstatic.com/charts/loader.js"></script>
+  <link href="/favicon.ico" rel="icon" type="image/x-icon" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <style>
+  	body {
+		font-family: Helvetica, Arial, sans-serif;
+		background-color: #f2f2f2;
+		margin-top: 5px;
+		margin-bottom: 10px;
+		margin-right: 20px;
+		margin-left: 20px;
+  	}
+    table
+    {
+    	font-family: Consolas, monaco, monospace;
+    	border-collapse:collapse;
+    	min-width:600px;
+    }
+    caption
+    {
+    	caption-side:top;
+    	font-weight:bold;
+    	font-style:italic;
+    	margin:2px;
+    }
+    table, th, td
+    {
+		border: 1px solid gray;
+		vertical-align: top;
+    }
+    th, td
+    {
+    	padding:2px;
+    	vertical-align: top;
+    }
+    th
+    {
+      background-color: #ddd;
+      font-weight:bold;
+    }
+    tr:nth-child(even) {background-color: #f2f2f2;}
+    tr:nth-child(odd) {background-color: #fff;}
+    .rowtitle
+    {
+    	font-weight:bold;
+    }
+	a {
+	  text-decoration: none;
+	  color: #000;
+	  display: block;
+
+	  -webkit-transition: font-size 0.3s ease, background-color 0.3s ease;
+	  -moz-transition: font-size 0.3s ease, background-color 0.3s ease;
+	  -o-transition: font-size 0.3s ease, background-color 0.3s ease;
+	  -ms-transition: font-size 0.3s ease, background-color 0.3s ease;
+	  transition: font-size 0.3s ease, background-color 0.3s ease;
+	}
+		a:hover {
+			color: blue;
+		}
+    .button {
+	  font-family: "Trebuchet MS";
+      background-color: #4285f4;
+      border: 2px solid #4285f4;
+      border-radius: 4px;
+      color: white;
+      padding: 2px 4px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 14px;
+    }
+    .fixed {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+    }
+    div.keyhole-fixed {
+      position: fixed;
+      top: 50px;
+      right: 20px;
+    }
+    .keyhole-fixed a { color: #4285F4; }
+    .disclaimer {
+      width: 100%;
+      background-color: #000;
+	  border: none;
+      text-align: center;
+      color: #888;
+	  font-size: 12px;
+    }
+	.disclaimer:hover{
+      color: #ccc;
+	  font-size: 20px;
+	}
+    .disclaimer-hover {
+      width: 100%;
+      background-color: #000;
+	  border: none;
+      text-align: center;
+      color: #ccc;
+	  font-size: 20px;
+    }
+    h1 {
+	  font-family: "Trebuchet MS";
+      font-size: 1.7em;
+      font-weight: bold;
+    }
+    h2 {
+	  font-family: "Trebuchet MS";
+      font-size: 1.5em;
+      font-weight: bold;
+    }
+    h3 {
+	  font-family: "Trebuchet MS";
+      font-size: 1.25em;
+      font-weight: bold;
+    }
+    h4 {
+	  font-family: "Trebuchet MS";
+      font-size: 1em;
+      font-weight: bold;
+	}
+	.command {
+	  background-color: #fff;
+	  border: none;
+	  outline:none;
+	}
+	.btn {
+	  background-color: #fff;
+	  border: none;
+	  outline:none;
+	  color: #4285F4;
+	  padding: 5px 30px;
+	  cursor: pointer;
+	  font-size: 20px;
+	}
+	.btn:hover {
+	  color: blue;
+	  border: none;
+	}
+	
+	.btn-red {
+	  background-color: #fff;
+	  border: none;
+	  outline:none;
+	  color: #DB4437;
+	  padding: 5px 30px;
+	  cursor: pointer;
+	  font-size: 20px;
+	}
+	.btn-red:hover {
+	  color:red;
+	  border: none;
+	}
+	.charts_block
+	{
+	  display: flex;
+	  justify-content: center;
+	}
+	.summary_block
+	{
+	  display: flex;
+	  justify-content: left;
+	}
+	table#mongopush {
+	  background-color: #f2f2f2;
+	  table-layout: fixed;
+	  width: 100%;
+	  border: 0px;
+	}
+	table#mongopush td {
+	  background-color: #f2f2f2;
+	  width: 10%;
+	  border: 0px;
+	  padding: 0px;
+	}
+	img:hover {
+		-webkit-transform: scaleX(-1);
+		transform: scaleX(-1);
+	}
+	.flip {
+		-webkit-transform: scaleX(-1);
+		transform: scaleX(-1);
+	}
+	.flip:hover {
+		-webkit-transform: scaleX(1);
+		transform: scaleX(1);
+	}
+    </style>
+</head>
+
+<body>
+<script type="text/javascript">
+	function toggleDiv(tag) {
+		var x = document.getElementById(tag);
+		if (x.style.display === "none") {
+	  		x.style.display = "block";
+		} else {
+	  		x.style.display = "none";
+		}
+  	}
+
+	var chart_data;
+	google.charts.load('current', {'packages':['corechart']});
+  	google.charts.setOnLoadCallback(drawCharts);
+
+  	function drawCharts(){
+		try {
+			drawGooglePieChart('completion', "Initial Data Sync Completed", [["Status","Total"],["Inserted",1400001],["Unprocessed",0]], 400, 250);
+			
+				drawGooglePieChart('atlas-ng23nx-shard-0-chart', 'Progress', [["Status","Total"],["Inserted",1400001],["Unprocessed",0]], 400, 250);
+			
+		} catch (err) {
+		}
+  	}
+
+  	function drawGooglePieChart(divID, title, data, w, h) {
+		if (data == null || data.length == 0) {
+			return;
+		}
+    	var chart_data = new google.visualization.arrayToDataTable(data);
+    	var options = {
+			'title': title,
+			'backgroundColor': '#f2f2f2',
+      		'width': w,
+      		'height': h,
+  			'is3D': true,
+  			'titleTextStyle': {'fontSize': 20},
+  			'chartArea': {'width': '100%'},
+  			'legend': {
+				  'position': 'labeled', 
+				  textStyle: {fontSize: 14 }
+				}
+  		};
+
+    	
+    	var chart = new google.visualization.PieChart(document.getElementById(divID));
+    	chart.draw(chart_data, options);
+	}
+
+</script>
+
+
+<div align='center'><img src='data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAHhlWElmTU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAIdpAAQAAAABAAAATgAAAAAAAACQAAAAAQAAAJAAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAAAECgAwAEAAAAAQAAAEAAAAAAlNz6EQAAAAlwSFlzAAAWJQAAFiUBSVIk8AAACNxJREFUeAHtm3lsVFUUh7vve4EutJQWKFtLyxK2QGhsKVtAaKxsgnVr0mgT4xb/ERtMjIpRlLhGgwpKaKKAxcQQQiDQQBMwZalbEARZLCltKW2hnS5&#43;ZzJDXod5M&#43;/NTGdeIy&#43;ZvOVu53fu2e65d/z8Hlz/bw4EDhX4/f39/keOHInr7u4ewRVTVlZmOnHiRM9Qod8tOufMmRMO6NejoqJ&#43;DQkJaQsNDW2NiYk5PmrUqGeEMW51bvTGs2bNSoqNjT0QEBDQD60DfkFBQf0JCQlbYUKA0XG4RJ/MLgA/8Pf3HwBcyQhhApKwwaUBjN5oypQpaYh8kxKwvWfU4Wh5eXmwK3gMLTq3b9&#43;e1NPTk&#43;gM2N27dydiEOOd1bNXbmgGmEwmrV4qMDg4OMweQGffDM2Avr6&#43;c&#43;j/LWcgAgMDL2RlZf3rrN6QK6&#43;qqgoIDw/fBeGqRlC8AzbgWVfdoS4fumLFimiCkeHe4OS8efNa9u/f35qYmJjW3t6&#43;jwBoqu24SIcfDNo3duzY9WfOnOmwLffo&#43;&#43;zZs6fFx8efQte6ETkTP7kPxs8kYxD0/J6cnLwJKQgaNmxYalhY2FfMdjOge/jJuJcjIyPfRPRjPQrUXmcQERYXF3eAMlVRHIwyEW/GrSktLQ0RupKSkrIIior4VpCWlpYg37xyLV26NDkiIuISg3mVATIes91PGLzZVR13xiBNXmDMmDEtzMafzjobjHKA&#43;xEPrJ8wYULUYPSvuc/U1NRpRGV1ovfMikn00MVfp7RjYM3ShE24Q7ibpZlYHRWDtNa9du3aL&#43;PHjy&#43;6evVqOhZZa7MB9WjXA5DspqamTzs7O0cOKHTwghT0EREO/aXv3Llzx&#43;Cz65AAzbMPX/rxAA2sCyId8Mj4RePGjcvHtf0mgPT83A10DMEZwM&#43;KjIz4Ww9wqSuSAtM&#43;NAQIV4lIT0&#43;fT7R2TS94mXlcb5U1BnB1fJ&#43;1E789ceLE1ejvTb3g8TS90dHRL/uMeHcHBnwA8flT5O5u6wXPzHcB/gV3afBZe5n5jIyM54gZTHrBk97qINR92mfEe2Lg0aNHzwb8HRfA32LRs9YTNPisD1m/M4O7XQDfxEJnuc8I99TABQUFw7D4smbQ7OuRliuAf8hTNOjtR9NiSGunHR0dQdiAUK31Ad8wfPjwRxobGw9pbePpeh5lwLJly5pZuJzUQiQeop6wuJi1xQkt9YdMnenTp6cQwByDYIdqQDbnzMyZMzOHDDAthIoLlHo5OTnpMOEUj6pMsIS5p8j9DcoyVwu9Hq8jwQ9ucLF0TAIjGyac5VGVCVJG0FOL8UyWNkP6ImH6GIFMD7p9gwyS2apnZmaOJxT&#43;A2CqTBBJwHUeXLVqldMdIMMyiNS1gO&#43;yAgX0dSRhgRBM8nIK739Zy&#43;zdhQkw8Ef2/F3a3ZFxfHYJeCz/PfAQYp5tXNzllJSU&#43;UIY9xm8O0yqChNQh6&#43;XLFmi2Y36DLR1YELXdYC/y7tdEZcgZ&#43;TIkYVSn8zuXKTE4bJYlsBIwud4Epd2eq10eeVO9LZGkpUMZhe89Ts5fDnAYPYOPC&#43;ACTesZfbuFiZsIw&#43;gdWOUbrx8MZsbAd/JsKrgRaQJi78hkRqtJE82NljvNztqS3k/0rXF1T1/5Xgef0afNzibeQGPC/xi&#43;fLlEfYIIAJcjCS0OWIC5bIrtNJee599Y69OZt6h2FvAfykHm9QIFZVAijYw06pSJP3gPZ5U68Pr39kYWYNRUyUYgsxJTELcHRgxuzOvJFqYgB2phAmyq3ufKlkYUKZs47NnwK8DvNOZF53XAt4KBCYEREREbufduAzQAX6Hms5bAdveRQpg2nuGZQAp7bWEtqp&#43;Xgi3iKomsVdhwFZDMgCDVwp4p2KPodrpyODZgla&#43;WyTAeAzAQq/E2jtNaQP&#43;Wz06rwQvz4ZkADP/KOAd&#43;miLq/t&#43;8uTJbu3ZG44BrOeLsfYOZ17AE8hUs4aPs51Rve&#43;GYkB1dXUIkddBkUy1n4Bns7KaFVuMXrD26huKAYWFhYmAU123W8Dvzc/Pd3vmrcwwAgPuZYXJ6HayEpODyfddgPcjwtuLipTV19e33lfBjQ&#43;M6ai1eRXpqILHymQ2OL5SLosQOr33k5lnYbPHkzOvJJrVYYWMoRxTni0rQu/uFsGEQLzAS7i3C3gCObDYiFpsw9XpPoyIkQzDS9SwRf6WqJcStPKZDHIS8cZZWwbA9J89mRNYtGhRAmO9C037i4qK7uGxK2IATrl06ZLk91u5X7TMkJJup8&#43;S2qLtbk58P4yY1wPyRQ4/X7c2xNuYHynr4xhcLgen3uDg1AQZC6bXEYJv6u3t/Uck09pGy93ar7RjbHOkSrg9tq2tbTPnrKZCx0/sRq05fPhwu/Snq3MtBCjrSJLz5MmTZZwO2wJ4iRnkeJmM2QeBsn0uVxBM6AV4MHXMXOH9DuCFeL2psV76NZ8ms7QVAyP9hPDrAPxrJGs/q6mpkVWt&#43;RpUBlgHQaJyAbQaIqIBKaoVxf0hyoMBe4yZkVyhENknbQAhhAttYhu0Xt30lULb&#43;dzlLPFRGN8i4OmgA7Xedfz4cVG1AZdXGKAckaNyI5qbm3cAuli&#43;Y3TPkVl&#43;ora2VtOeorIv5TPrkVzpF0bnyXdU4RBZ5sfr6uquKOvZPjv0QbaV3X1ndvxbW1vfRzeLcavyN7jnYUQ6&#43;v&#43;R3qW0khYkLLilpeUTpCpT&#43;sR2VXV1dRWg9&#43;8o6/n8uaKiIp4ts4t4hlorMVjmjzlG1wOIUdZveu8LFy5MpQ9Tbm7udmkrjJ40adKx7OzsK5WVlQ6jVs1HZfUSZa/&#43;HS6&#43;NyKmGcXFxTkYpbbz589PRU9vMmtS5tKFRMn542buOSUlJRkwJAbJyqCzq6iX2dqrdex1G5CXl7cad7cTgsyHrZmtOPT11YaGBhFXPUZvACYCtVf4Z8nbGMBbqIJ4j1DUYSOR63cDKtq8eFUCZOzTp0/vRty7YMJGwIcz83tmzJixHQa4DF76ZSEnqbVmdL8Ew9rF&#43;04M6w9IhhQ/uNQ48B9r3ct5tDEETgAAAABJRU5ErkJggg=='/><img class='flip' src='data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAAHhlWElmTU0AKgAAAAgABAEaAAUAAAABAAAAPgEbAAUAAAABAAAARgEoAAMAAAABAAIAAIdpAAQAAAABAAAATgAAAAAAAACQAAAAAQAAAJAAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAAAECgAwAEAAAAAQAAAEAAAAAAlNz6EQAAAAlwSFlzAAAWJQAAFiUBSVIk8AAACNxJREFUeAHtm3lsVFUUh7vve4EutJQWKFtLyxK2QGhsKVtAaKxsgnVr0mgT4xb/ERtMjIpRlLhGgwpKaKKAxcQQQiDQQBMwZalbEARZLCltKW2hnS5&#43;ZzJDXod5M&#43;/NTGdeIy&#43;ZvOVu53fu2e65d/z8Hlz/bw4EDhX4/f39/keOHInr7u4ewRVTVlZmOnHiRM9Qod8tOufMmRMO6NejoqJ&#43;DQkJaQsNDW2NiYk5PmrUqGeEMW51bvTGs2bNSoqNjT0QEBDQD60DfkFBQf0JCQlbYUKA0XG4RJ/MLgA/8Pf3HwBcyQhhApKwwaUBjN5oypQpaYh8kxKwvWfU4Wh5eXmwK3gMLTq3b9&#43;e1NPTk&#43;gM2N27dydiEOOd1bNXbmgGmEwmrV4qMDg4OMweQGffDM2Avr6&#43;c&#43;j/LWcgAgMDL2RlZf3rrN6QK6&#43;qqgoIDw/fBeGqRlC8AzbgWVfdoS4fumLFimiCkeHe4OS8efNa9u/f35qYmJjW3t6&#43;jwBoqu24SIcfDNo3duzY9WfOnOmwLffo&#43;&#43;zZs6fFx8efQte6ETkTP7kPxs8kYxD0/J6cnLwJKQgaNmxYalhY2FfMdjOge/jJuJcjIyPfRPRjPQrUXmcQERYXF3eAMlVRHIwyEW/GrSktLQ0RupKSkrIIior4VpCWlpYg37xyLV26NDkiIuISg3mVATIes91PGLzZVR13xiBNXmDMmDEtzMafzjobjHKA&#43;xEPrJ8wYULUYPSvuc/U1NRpRGV1ovfMikn00MVfp7RjYM3ShE24Q7ibpZlYHRWDtNa9du3aL&#43;PHjy&#43;6evVqOhZZa7MB9WjXA5DspqamTzs7O0cOKHTwghT0EREO/aXv3Llzx&#43;Cz65AAzbMPX/rxAA2sCyId8Mj4RePGjcvHtf0mgPT83A10DMEZwM&#43;KjIz4Ww9wqSuSAtM&#43;NAQIV4lIT0&#43;fT7R2TS94mXlcb5U1BnB1fJ&#43;1E789ceLE1ejvTb3g8TS90dHRL/uMeHcHBnwA8flT5O5u6wXPzHcB/gV3afBZe5n5jIyM54gZTHrBk97qINR92mfEe2Lg0aNHzwb8HRfA32LRs9YTNPisD1m/M4O7XQDfxEJnuc8I99TABQUFw7D4smbQ7OuRliuAf8hTNOjtR9NiSGunHR0dQdiAUK31Ad8wfPjwRxobGw9pbePpeh5lwLJly5pZuJzUQiQeop6wuJi1xQkt9YdMnenTp6cQwByDYIdqQDbnzMyZMzOHDDAthIoLlHo5OTnpMOEUj6pMsIS5p8j9DcoyVwu9Hq8jwQ9ucLF0TAIjGyac5VGVCVJG0FOL8UyWNkP6ImH6GIFMD7p9gwyS2apnZmaOJxT&#43;A2CqTBBJwHUeXLVqldMdIMMyiNS1gO&#43;yAgX0dSRhgRBM8nIK739Zy&#43;zdhQkw8Ef2/F3a3ZFxfHYJeCz/PfAQYp5tXNzllJSU&#43;UIY9xm8O0yqChNQh6&#43;XLFmi2Y36DLR1YELXdYC/y7tdEZcgZ&#43;TIkYVSn8zuXKTE4bJYlsBIwud4Epd2eq10eeVO9LZGkpUMZhe89Ts5fDnAYPYOPC&#43;ACTesZfbuFiZsIw&#43;gdWOUbrx8MZsbAd/JsKrgRaQJi78hkRqtJE82NljvNztqS3k/0rXF1T1/5Xgef0afNzibeQGPC/xi&#43;fLlEfYIIAJcjCS0OWIC5bIrtNJee599Y69OZt6h2FvAfykHm9QIFZVAijYw06pSJP3gPZ5U68Pr39kYWYNRUyUYgsxJTELcHRgxuzOvJFqYgB2phAmyq3ufKlkYUKZs47NnwK8DvNOZF53XAt4KBCYEREREbufduAzQAX6Hms5bAdveRQpg2nuGZQAp7bWEtqp&#43;Xgi3iKomsVdhwFZDMgCDVwp4p2KPodrpyODZgla&#43;WyTAeAzAQq/E2jtNaQP&#43;Wz06rwQvz4ZkADP/KOAd&#43;miLq/t&#43;8uTJbu3ZG44BrOeLsfYOZ17AE8hUs4aPs51Rve&#43;GYkB1dXUIkddBkUy1n4Bns7KaFVuMXrD26huKAYWFhYmAU123W8Dvzc/Pd3vmrcwwAgPuZYXJ6HayEpODyfddgPcjwtuLipTV19e33lfBjQ&#43;M6ai1eRXpqILHymQ2OL5SLosQOr33k5lnYbPHkzOvJJrVYYWMoRxTni0rQu/uFsGEQLzAS7i3C3gCObDYiFpsw9XpPoyIkQzDS9SwRf6WqJcStPKZDHIS8cZZWwbA9J89mRNYtGhRAmO9C037i4qK7uGxK2IATrl06ZLk91u5X7TMkJJup8&#43;S2qLtbk58P4yY1wPyRQ4/X7c2xNuYHynr4xhcLgen3uDg1AQZC6bXEYJv6u3t/Uck09pGy93ar7RjbHOkSrg9tq2tbTPnrKZCx0/sRq05fPhwu/Snq3MtBCjrSJLz5MmTZZwO2wJ4iRnkeJmM2QeBsn0uVxBM6AV4MHXMXOH9DuCFeL2psV76NZ8ms7QVAyP9hPDrAPxrJGs/q6mpkVWt&#43;RpUBlgHQaJyAbQaIqIBKaoVxf0hyoMBe4yZkVyhENknbQAhhAttYhu0Xt30lULb&#43;dzlLPFRGN8i4OmgA7Xedfz4cVG1AZdXGKAckaNyI5qbm3cAuli&#43;Y3TPkVl&#43;ora2VtOeorIv5TPrkVzpF0bnyXdU4RBZ5sfr6uquKOvZPjv0QbaV3X1ndvxbW1vfRzeLcavyN7jnYUQ6&#43;v&#43;R3qW0khYkLLilpeUTpCpT&#43;sR2VXV1dRWg9&#43;8o6/n8uaKiIp4ts4t4hlorMVjmjzlG1wOIUdZveu8LFy5MpQ9Tbm7udmkrjJ40adKx7OzsK5WVlQ6jVs1HZfUSZa/&#43;HS6&#43;NyKmGcXFxTkYpbbz589PRU9vMmtS5tKFRMn542buOSUlJRkwJAbJyqCzq6iX2dqrdex1G5CXl7cad7cTgsyHrZmtOPT11YaGBhFXPUZvACYCtVf4Z8nbGMBbqIJ4j1DUYSOR63cDKtq8eFUCZOzTp0/vRty7YMJGwIcz83tmzJixHQa4DF76ZSEnqbVmdL8Ew9rF&#43;04M6w9IhhQ/uNQ48B9r3ct5tDEETgAAAABJRU5ErkJggg=='/></div>
+<div class='disclaimer-hover'>mongopush v1.0.3rc2 is not supported by MongoDB, Inc. under any of their commercial support subscriptions or otherwise.</div>
+
+<div align='center'>
+	<table width='100%'>
+	<tr><td colspan=3 align="center" class='command'>
+
+		</td></tr>
+		<tr>
+			<td align='center' width='20'><i class="fa fa-terminal"></td>
+			<td>{"push":"data","workers":8,"drop":false,"block":10000,"snapshot":"./snapshot"}</td>
+			<td rowspan=8 width='400px'>
+				<div class="charts_block">
+					<div id="completion" style='padding: 0px 10px;'></div>
+				</div>
+			</td>
+		</tr>
+		<tr><td align='center' width='20'><i class="fa fa-battery-half"></td><td>initial data copy completed, took 2m11.2s</td></tr>
+		<tr><td align='center' width='20'><i class="fa fa-hourglass-half"></td><td>2022-03-07T09:57:35-08:00 ~ 2022-03-07T10:02:16-08:00 (4m40.8s)</td></tr>
+		<tr><td align='center' width='20' rowspan=2><i class="fa fa-database"></td><td>MongoDB v4.4.12 enterprise atlas-ng23nx-shard-00-00.l50ex.mongodb.net:27016 (CentOS Linux release 7.9.2009 (Core)) mongos sharded(1) 4 cores 15588 mem</td></tr>
+		<tr><td>mongodb&#43;srv://XXX:xxxxxx@adltest.l50ex.mongodb.net/transactions?retryWrites=true&amp;w=majority&amp;readPreference=secondary&amp;readPreferenceTags=nodeType:ANALYTICS</td></tr>
+		<tr><td align='center' width='20' rowspan=2><i class="fa fa-cloud-upload"></td><td>MongoDB v4.2.18 enterprise atlas-iq8cx5-shard-02-02.l50ex.mongodb.net:27016 (CentOS Linux release 7.9.2009 (Core)) mongos sharded(3) 2 cores 7609 mem</td></tr>			
+		<tr><td>mongodb&#43;srv://XXX:xxxxxx@destination-test.l50ex.mongodb.net/transactions?retryWrites=true&amp;w=majority&amp;readPreference=secondary</td></tr>
+		<tr><td align='center' width='20'><i class="fa fa-camera"></td><td>/Users/mgm/Code/synchopate/snapshot/mongopush-data-snapshot.bson.gz</td></tr>
+		<tr><td align='center' width='20'><a onClick="toggleDiv('logs'); return false;"><i class="fa fa-hand-pointer-o"></i></a></td>
+			<td colspan=2>migration logs...
+				<div id='logs' style='background: black; color: #ccc; display:block; height: 500px; overflow: auto;'>
+				<br/>
+				
+					2022-03-07T10:02:16-08:00 I html output to ./html/mongopush-data.html<br/>
+				
+					2022-03-07T10:02:16-08:00 I SIGTERM received, cleaning up and writing logs...<br/>
+				
+					2022-03-07T10:02:15-08:00 I atlas-ng23nx-shard-0: lag 0s<br/>
+				
+					2022-03-07T10:01:14-08:00 I atlas-ng23nx-shard-0: lag 0s<br/>
+				
+					2022-03-07T10:00:14-08:00 I atlas-ng23nx-shard-0: lag 2m17.16347s<br/>
+				
+					<span style="color:white;"><b>2022-03-07T10:00:14-08:00 R live streaming oplogs from atlas-ng23nx-shard-0 since 2022-03-07T09:57:57-08:00</b></span><br/>
+				
+					2022-03-07T10:00:14-08:00 I atlas-ng23nx-shard-0: 0 cached oplog files processed, switching to living streaming<br/>
+				
+					<span style="color:white;"><b>2022-03-07T10:00:13-08:00 R atlas-ng23nx-shard-0: 0 cached files processed, took 83.815µs </b></span><br/>
+				
+					<span style="color:white;"><b>2022-03-07T10:00:13-08:00 R applying oplogs from cache, replica set: atlas-ng23nx-shard-0</b></span><br/>
+				
+					2022-03-07T10:00:13-08:00 I set atlas-ng23nx-shard-0 initial data migrated to true<br/>
+				
+					2022-03-07T10:00:13-08:00 I [watchdog] retired<br/>
+				
+					2022-03-07T10:00:12-08:00 I [worker 3] retired<br/>
+				
+					2022-03-07T10:00:12-08:00 I [worker 1] retired<br/>
+				
+					2022-03-07T10:00:12-08:00 I [worker 6] retired<br/>
+				
+					2022-03-07T10:00:12-08:00 I [worker 8] retired<br/>
+				
+					2022-03-07T10:00:12-08:00 I [worker 5] retired<br/>
+				
+					2022-03-07T10:00:12-08:00 I [worker 2] retired<br/>
+				
+					2022-03-07T10:00:12-08:00 I [worker 4] retired<br/>
+				
+					2022-03-07T10:00:12-08:00 I [worker 7] retired<br/>
+				
+					<span style="color:white;"><b>2022-03-07T10:00:12-08:00 R initial data copy completed, took 2m11.2s</b></span><br/>
+				
+					2022-03-07T09:58:31-08:00 I added: 110, completed: 23, failed: 0, processing: 8, split: 1, splitting: 0<br/>
+				
+					<span style="color:white;"><b>2022-03-07T09:58:31-08:00 R snapshot completed, took 30.1s</b></span><br/>
+				
+					2022-03-07T09:58:31-08:00 I all collections split<br/>
+				
+					2022-03-07T09:58:31-08:00 I completed splitting atlas-ng23nx-shard-0/transactions_small.transactions_small took 26.9s<br/>
+				
+					2022-03-07T09:58:04-08:00 I split atlas-ng23nx-shard-0/transactions_small.transactions_small using block size 10000<br/>
+				
+					2022-03-07T09:58:03-08:00 I [watchdog] enabled<br/>
+				
+					<span style="color:white;"><b>2022-03-07T09:58:03-08:00 R split 1 collections using 1 splitters</b></span><br/>
+				
+					2022-03-07T09:58:03-08:00 I [worker 8] joined<br/>
+				
+					2022-03-07T09:58:03-08:00 I [worker 7] joined<br/>
+				
+					2022-03-07T09:58:03-08:00 I [worker 6] joined<br/>
+				
+					2022-03-07T09:58:03-08:00 I [worker 5] joined<br/>
+				
+					2022-03-07T09:58:03-08:00 I [worker 4] joined<br/>
+				
+					2022-03-07T09:58:03-08:00 I [worker 3] joined<br/>
+				
+					2022-03-07T09:58:03-08:00 I [worker 2] joined<br/>
+				
+					2022-03-07T09:58:03-08:00 I [worker 1] joined<br/>
+				
+					<span style="color:white;"><b>2022-03-07T09:58:03-08:00 R create tasks completed</b></span><br/>
+				
+					2022-03-07T09:58:03-08:00 I found 1 qualified collections<br/>
+				
+					2022-03-07T09:58:01-08:00 I begin evaluating 1 collections<br/>
+				
+					2022-03-07T09:58:01-08:00 I add tasks<br/>
+				
+					2022-03-07T09:58:01-08:00 I processing transactions_small.transactions_small<br/>
+				
+					2022-03-07T09:58:01-08:00 I create tasks<br/>
+				
+					<span style="color:white;"><b>2022-03-07T09:58:00-08:00 R begin caching oplogs from atlas-ng23nx-shard-0 since 2022-03-07T09:57:57-08:00</b></span><br/>
+				
+					2022-03-07T09:58:00-08:00 I get latest oplog took 779.516165ms<br/>
+				
+					2022-03-07T09:57:59-08:00 I atlas-ng23nx-shard-0 RetrieveSnapshotLatestOplog error: mongo: no documents in result<br/>
+				
+					2022-03-07T09:57:59-08:00 I caching oplogs<br/>
+				
+					2022-03-07T09:57:58-08:00 I { "include": [{"namespace":"transactions_small.transactions_small"}] }<br/>
+				
+					2022-03-07T09:57:57-08:00 I snapshot details are written to ./snapshot/mongopush-data-snapshot.bson.gz<br/>
+				
+					2022-03-07T09:57:57-08:00 I target: MongoDB v4.2.18 enterprise atlas-iq8cx5-shard-02-02.l50ex.mongodb.net:27016 (CentOS Linux release 7.9.2009 (Core)) mongos sharded(3) 2 cores 7609 mem<br/>
+				
+					2022-03-07T09:57:56-08:00 I [t-8] completed<br/>
+				
+					2022-03-07T09:57:56-08:00 I [t-7] completed<br/>
+				
+					2022-03-07T09:57:56-08:00 I [t-6] completed<br/>
+				
+					2022-03-07T09:57:55-08:00 I [t-8] ping: 988.917386ms<br/>
+				
+					2022-03-07T09:57:55-08:00 I [t-7] ping: 1.004212042s<br/>
+				
+					2022-03-07T09:57:55-08:00 I [t-6] ping: 1.015299537s<br/>
+				
+					2022-03-07T09:57:54-08:00 I [t-1] completed<br/>
+				
+					2022-03-07T09:57:54-08:00 I [t-8] collect from mongodb://dba:xxxxxx@atlas-iq8cx5-shard-02-02.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:54-08:00 I [t-3] completed<br/>
+				
+					2022-03-07T09:57:54-08:00 I [t-4] completed<br/>
+				
+					2022-03-07T09:57:54-08:00 I [t-7] collect from mongodb://dba:xxxxxx@atlas-iq8cx5-shard-02-01.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:54-08:00 I [t-5] completed<br/>
+				
+					2022-03-07T09:57:54-08:00 I [t-2] completed<br/>
+				
+					2022-03-07T09:57:54-08:00 I [t-0] completed<br/>
+				
+					2022-03-07T09:57:54-08:00 I [t-1] ping: 1.09057649s<br/>
+				
+					2022-03-07T09:57:54-08:00 I [t-4] ping: 1.040061664s<br/>
+				
+					2022-03-07T09:57:54-08:00 I [t-3] ping: 1.024691093s<br/>
+				
+					2022-03-07T09:57:54-08:00 I [t-5] ping: 1.018547818s<br/>
+				
+					2022-03-07T09:57:54-08:00 I [t-2] ping: 1.002037875s<br/>
+				
+					2022-03-07T09:57:54-08:00 I [t-0] ping: 992.927317ms<br/>
+				
+					2022-03-07T09:57:52-08:00 I [t-6] collect from mongodb://dba:xxxxxx@atlas-iq8cx5-shard-02-00.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:52-08:00 I [t-5] collect from mongodb://dba:xxxxxx@atlas-iq8cx5-shard-01-02.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:52-08:00 I [t-4] collect from mongodb://dba:xxxxxx@atlas-iq8cx5-shard-01-01.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:52-08:00 I [t-3] collect from mongodb://dba:xxxxxx@atlas-iq8cx5-shard-01-00.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:52-08:00 I [t-2] collect from mongodb://dba:xxxxxx@atlas-iq8cx5-shard-00-02.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:52-08:00 I [t-1] collect from mongodb://dba:xxxxxx@atlas-iq8cx5-shard-00-01.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:52-08:00 I [t-0] collect from mongodb://dba:xxxxxx@atlas-iq8cx5-shard-00-00.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:52-08:00 I [t-7] completed<br/>
+				
+					2022-03-07T09:57:52-08:00 I [t-8] completed<br/>
+				
+					2022-03-07T09:57:52-08:00 I [t-6] completed<br/>
+				
+					2022-03-07T09:57:51-08:00 I [t-7] ping: 1.147677167s<br/>
+				
+					2022-03-07T09:57:51-08:00 I [t-8] ping: 1.058943482s<br/>
+				
+					2022-03-07T09:57:51-08:00 I [t-6] ping: 1.013010474s<br/>
+				
+					2022-03-07T09:57:50-08:00 I [t-0] completed<br/>
+				
+					2022-03-07T09:57:50-08:00 I [t-4] completed<br/>
+				
+					2022-03-07T09:57:50-08:00 I [t-8] collect from mongodb://dba:xxxxxx@atlas-iq8cx5-shard-02-02.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:50-08:00 I [t-7] collect from mongodb://dba:xxxxxx@atlas-iq8cx5-shard-02-01.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:50-08:00 I [t-3] completed<br/>
+				
+					2022-03-07T09:57:50-08:00 I [t-5] completed<br/>
+				
+					2022-03-07T09:57:50-08:00 I [t-2] completed<br/>
+				
+					2022-03-07T09:57:50-08:00 I [t-1] completed<br/>
+				
+					2022-03-07T09:57:50-08:00 I [t-0] ping: 1.134188254s<br/>
+				
+					2022-03-07T09:57:49-08:00 I [t-4] ping: 1.083011403s<br/>
+				
+					2022-03-07T09:57:49-08:00 I [t-3] ping: 1.056236628s<br/>
+				
+					2022-03-07T09:57:49-08:00 I [t-5] ping: 1.014560644s<br/>
+				
+					2022-03-07T09:57:49-08:00 I [t-2] ping: 1.007897788s<br/>
+				
+					2022-03-07T09:57:49-08:00 I [t-1] ping: 1.001985691s<br/>
+				
+					2022-03-07T09:57:48-08:00 I [t-6] collect from mongodb://dba:xxxxxx@atlas-iq8cx5-shard-02-00.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:48-08:00 I [t-5] collect from mongodb://dba:xxxxxx@atlas-iq8cx5-shard-01-02.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:48-08:00 I [t-4] collect from mongodb://dba:xxxxxx@atlas-iq8cx5-shard-01-01.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:48-08:00 I [t-3] collect from mongodb://dba:xxxxxx@atlas-iq8cx5-shard-01-00.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:48-08:00 I [t-2] collect from mongodb://dba:xxxxxx@atlas-iq8cx5-shard-00-02.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:48-08:00 I [t-1] collect from mongodb://dba:xxxxxx@atlas-iq8cx5-shard-00-01.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:48-08:00 I [t-0] collect from mongodb://dba:xxxxxx@atlas-iq8cx5-shard-00-00.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:45-08:00 I check target health<br/>
+				
+					<span style="color:white;"><b>2022-03-07T09:57:45-08:00 R migrating from v4.4.12 to v4.2.18</b></span><br/>
+				
+					2022-03-07T09:57:41-08:00 I [t-2] completed<br/>
+				
+					2022-03-07T09:57:41-08:00 I [t-0] completed<br/>
+				
+					2022-03-07T09:57:41-08:00 I [t-3] completed<br/>
+				
+					2022-03-07T09:57:41-08:00 I [t-1] completed<br/>
+				
+					2022-03-07T09:57:41-08:00 I [t-2] ping: 925.760084ms<br/>
+				
+					2022-03-07T09:57:41-08:00 I [t-3] ping: 917.220514ms<br/>
+				
+					2022-03-07T09:57:41-08:00 I [t-1] ping: 913.130814ms<br/>
+				
+					2022-03-07T09:57:41-08:00 I [t-0] ping: 909.038536ms<br/>
+				
+					2022-03-07T09:57:40-08:00 I [t-3] collect from mongodb://dba:xxxxxx@atlas-ng23nx-shard-00-03.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:40-08:00 I [t-2] collect from mongodb://dba:xxxxxx@atlas-ng23nx-shard-00-02.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:40-08:00 I [t-1] collect from mongodb://dba:xxxxxx@atlas-ng23nx-shard-00-01.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:40-08:00 I [t-0] collect from mongodb://dba:xxxxxx@atlas-ng23nx-shard-00-00.l50ex.mongodb.net:27017/?connect=direct&authSource=admin&tls=true&tls=true&w=majority&retryWrites=true<br/>
+				
+					2022-03-07T09:57:39-08:00 I check source health<br/>
+				
+					2022-03-07T09:57:39-08:00 I source: MongoDB v4.4.12 enterprise atlas-ng23nx-shard-00-00.l50ex.mongodb.net:27016 (CentOS Linux release 7.9.2009 (Core)) mongos sharded(1) 4 cores 15588 mem<br/>
+				
+					2022-03-07T09:57:35-08:00 I starting web server at :5226, url: http://Matthews-MacBook-Pro-2.local:5226<br/>
+				
+					2022-03-07T09:57:35-08:00 I db: mongodb+srv://dba:xxxxxx@mongopush.l50ex.mongodb.net/_mongopush?retryWrites=true&w=majority<br/>
+				
+					2022-03-07T09:57:35-08:00 I target: mongodb+srv://dba:xxxxxx@destination-test.l50ex.mongodb.net/transactions?retryWrites=true&w=majority&readPreference=secondary<br/>
+				
+					2022-03-07T09:57:35-08:00 I source: mongodb+srv://dba:xxxxxx@adltest.l50ex.mongodb.net/transactions?retryWrites=true&w=majority&readPreference=secondary&readPreferenceTags=nodeType:ANALYTICS<br/>
+				
+					2022-03-07T09:57:35-08:00 I API key OBXSKIQY:31fd4ba0-074f-95f5-ad32-316889fd65bf<br/>
+				
+					2022-03-07T09:57:35-08:00 I "snapshot_db" not defined, use default "_mongopush"<br/>
+				
+					<span style="color:white;"><b>2022-03-07T09:57:35-08:00 R mongopush v1.0.3rc2 begins at 2022-03-07T09:57:35-08:00</b></span><br/>
+				
+				<br/>
+				</div>
+			</td></tr>
+	</table>
+</div>
+<hr/>
+
+
+  
+	
+	<table width="100%">
+		<tr><td align='center' width='20'><i class="fa fa-database"></i></td><td colspan=2>atlas-ng23nx-shard-0</td></tr>
+		<tr><td align='center' width='20'><i class="fa fa-battery-half"></td>
+			<td align='center'>
+				<div id='atlas-ng23nx-shard-0-p' style='padding: 0px 10px; max-height: 300px; overflow: auto;'>
+					<table width='100%'>
+					<tr><th>Namespace</th><th>Total</th><th>Inserted</th><th>Copied</th><th>%</th></tr>
+						
+						<tr><td>transactions_small.transactions_small</td>
+							<td align=right>1,400,001</td>
+							<td align=right>1,400,001</td>
+							<td align=right>619.1MB</td>
+							<td align=right>100%</td>
+						</tr>
+						
+					</table>
+				</div>
+			</td>
+			<td width='400px' align='right'>
+				<div id="atlas-ng23nx-shard-0-chart" style='padding: 0px 10px;'></div> 
+		</td></tr>
+		<tr><td align='center' width='20'><a onClick="toggleDiv('atlas-ng23nx-shard-0'); return false;"><i class="fa fa-hand-pointer-o"></i></a></td>
+			<td colspan=2>142 Tasks
+			<div id='atlas-ng23nx-shard-0' style='display:none; max-height: 500px; overflow: auto;'>
+				<table width='100%'>
+				<tr><th>ID</th><th>Namespace</th><th>Status</th><th>Total</th><th>Inserted</th><th>%</th>
+					<th>Begin</th><th>End</th><th>Duration</th><th>Copied</th><th>Throughput</th></tr>
+					
+					<tr><td align=right>
+						
+						
+						</td>
+						<td>[summary]</td>
+						<td>
+							
+								completed
+							
+						</td>
+						<td align=right>141</td>
+						<td align=right>0</td>
+						<td align=right>0%</td>
+						<td></td>
+						<td></td>
+						<td align=right></td>
+						<td align=right></td>
+						<td align=right></td>
+					</tr>
+					
+					<tr><td align=right>
+						
+						
+						</td>
+						<td>[summary]</td>
+						<td>
+							
+								split
+							
+						</td>
+						<td align=right>1</td>
+						<td align=right>0</td>
+						<td align=right></td>
+						<td></td>
+						<td></td>
+						<td align=right></td>
+						<td align=right></td>
+						<td align=right></td>
+					</tr>
+					
+					<tr><td align=right>
+						
+							0
+						
+						</td>
+						<td>transactions_small.transactions_small</td>
+						<td>
+							
+								split
+							
+						</td>
+						<td align=right>1,400,001</td>
+						<td align=right>1,400,001</td>
+						<td align=right></td>
+						<td>2022-03-07T17:58:03Z</td>
+						<td>2022-03-07T17:58:31Z</td>
+						<td align=right>27.8s</td>
+						<td align=right></td>
+						<td align=right></td>
+					</tr>
+					
+					<tr><td align=right>
+						
+							91
+						
+						</td>
+						<td>transactions_small.transactions_small</td>
+						<td>
+							
+								completed
+							
+						</td>
+						<td align=right>10,000</td>
+						<td align=right>10,000</td>
+						<td align=right>100%</td>
+						<td>2022-03-07T17:59:42Z</td>
+						<td>2022-03-07T17:59:49Z</td>
+						<td align=right>7.4s</td>
+						<td align=right>4.4MB</td>
+						<td align=right>604.3KB/s</td>
+					</tr>
+					
+					<tr><td align=right>
+						
+							99
+						
+						</td>
+						<td>transactions_small.transactions_small</td>
+						<td>
+							
+								completed
+							
+						</td>
+						<td align=right>10,000</td>
+						<td align=right>10,000</td>
+						<td align=right>100%</td>
+						<td>2022-03-07T17:59:34Z</td>
+						<td>2022-03-07T17:59:40Z</td>
+						<td align=right>6.8s</td>
+						<td align=right>4.4MB</td>
+						<td align=right>662.3KB/s</td>
+					</tr>
+					
+					<tr><td align=right>
+						
+							96
+						
+						</td>
+						<td>transactions_small.transactions_small</td>
+						<td>
+							
+								completed
+							
+						</td>
+						<td align=right>10,000</td>
+						<td align=right>10,000</td>
+						<td align=right>100%</td>
+						<td>2022-03-07T17:58:24Z</td>
+						<td>2022-03-07T17:58:30Z</td>
+						<td align=right>6.3s</td>
+						<td align=right>4.4MB</td>
+						<td align=right>708.3KB/s</td>
+					</tr>
+					
+					<tr><td align=right>
+						
+							90
+						
+						</td>
+						<td>transactions_small.transactions_small</td>
+						<td>
+							
+								completed
+							
+						</td>
+						<td align=right>10,000</td>
+						<td align=right>10,000</td>
+						<td align=right>100%</td>
+						<td>2022-03-07T17:59:42Z</td>
+						<td>2022-03-07T17:59:49Z</td>
+						<td align=right>6.3s</td>
+						<td align=right>4.4MB</td>
+						<td align=right>712.0KB/s</td>
+					</tr>
+					
+					<tr><td align=right>
+						
+							95
+						
+						</td>
+						<td>transactions_small.transactions_small</td>
+						<td>
+							
+								completed
+							
+						</td>
+						<td align=right>10,000</td>
+						<td align=right>10,000</td>
+						<td align=right>100%</td>
+						<td>2022-03-07T17:59:35Z</td>
+						<td>2022-03-07T17:59:41Z</td>
+						<td align=right>6.0s</td>
+						<td align=right>4.4MB</td>
+						<td align=right>754.0KB/s</td>
+					</tr>
+					
+					<tr><td align=right>
+						
+							92
+						
+						</td>
+						<td>transactions_small.transactions_small</td>
+						<td>
+							
+								completed
+							
+						</td>
+						<td align=right>10,000</td>
+						<td align=right>10,000</td>
+						<td align=right>100%</td>
+						<td>2022-03-07T17:59:39Z</td>
+						<td>2022-03-07T17:59:45Z</td>
+						<td align=right>5.6s</td>
+						<td align=right>4.4MB</td>
+						<td align=right>798.3KB/s</td>
+					</tr>
+					
+					<tr><td align=right>
+						
+							98
+						
+						</td>
+						<td>transactions_small.transactions_small</td>
+						<td>
+							
+								completed
+							
+						</td>
+						<td align=right>10,000</td>
+						<td align=right>10,000</td>
+						<td align=right>100%</td>
+						<td>2022-03-07T17:58:25Z</td>
+						<td>2022-03-07T17:58:30Z</td>
+						<td align=right>5.4s</td>
+						<td align=right>4.4MB</td>
+						<td align=right>837.1KB/s</td>
+					</tr>
+					
+					<tr><td align=right>
+						
+							94
+						
+						</td>
+						<td>transactions_small.transactions_small</td>
+						<td>
+							
+								completed
+							
+						</td>
+						<td align=right>10,000</td>
+						<td align=right>10,000</td>
+						<td align=right>100%</td>
+						<td>2022-03-07T17:59:38Z</td>
+						<td>2022-03-07T17:59:43Z</td>
+						<td align=right>5.0s</td>
+						<td align=right>4.4MB</td>
+						<td align=right>892.5KB/s</td>
+					</tr>
+					
+					<tr><td align=right>
+						
+							97
+						
+						</td>
+						<td>transactions_small.transactions_small</td>
+						<td>
+							
+								completed
+							
+						</td>
+						<td align=right>10,000</td>
+						<td align=right>10,000</td>
+						<td align=right>100%</td>
+						<td>2022-03-07T17:58:24Z</td>
+						<td>2022-03-07T17:58:29Z</td>
+						<td align=right>4.9s</td>
+						<td align=right>4.4MB</td>
+						<td align=right>907.3KB/s</td>
+					</tr>
+					
+					<tr><td align=right>
+						
+							93
+						
+						</td>
+						<td>transactions_small.transactions_small</td>
+						<td>
+							
+								completed
+							
+						</td>
+						<td align=right>10,000</td>
+						<td align=right>10,000</td>
+						<td align=right>100%</td>
+						<td>2022-03-07T17:59:39Z</td>
+						<td>2022-03-07T17:59:43Z</td>
+						<td align=right>4.4s</td>
+						<td align=right>4.4MB</td>
+						<td align=right>1007.9KB/s</td>
+					</tr>
+					
+				</table>
+			</div>
+			</td>
+		</tr>
+	</table>
+	<hr/>
+  
+
+</body>
