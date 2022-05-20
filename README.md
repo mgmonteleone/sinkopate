@@ -17,7 +17,7 @@ Components:
     - has index for `shard_key`
     - is sharded by the shard key.
 - LoadGenerators
-  - create specific load/write paterns that are known to trip up synch suites
+  - create specific load/write patterns that are known to trip up synch suites
 - DataSyncher
   - Orchestration wrapper to control the synch tool (in this case `mongopush`)
     - Start synch
